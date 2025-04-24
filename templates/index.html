@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steam Link Bot</title>
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row mb-4">
+            <div class="col">
+                <h1>Steam Link Discord Bot</h1>
+                <p class="lead">
+                    Bot Status: 
+                    {% if bot_running %}
+                        <span class="badge bg-success">Running</span>
+                    {% else %}
+                        <span class="badge bg-danger">Stopped</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="row">
+            <!-- Bot Controls -->
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Bot Controls</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if not bot_running %}
+                            <form action="{{ url_for('start_bot_route') }}" method="post">
+                                <button type="submit" class="btn btn-primary">Start Bot</button>
+                            </form>
+                        {% else %}
+                            <p>Bot is currently running</p>
+                            <p>To restart the bot with new settings, refresh the page and start again.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuration -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Bot Configuration</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('update_config') }}" method="post">
+                            <div class="mb-3">
+                                <label for="discord_token" class="form-label">Discord Bot Token *</label>
+                                <input type="password" class="form-control" id="discord_token" name="discord_token" 
+                                       value="{{ config.DISCORD_TOKEN }}" required>
+                                <div class="form-text">Get this from the <a href="https://discord.com/developers/applications" target="_blank">Discord Developer Portal</a></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="target_channel_id" class="form-label">Target Channel ID *</label>
+                                <input type="text" class="form-control" id="target_channel_id" name="target_channel_id" 
+                                       value="{{ config.TARGET_CHANNEL_ID if config.TARGET_CHANNEL_ID != 0 else '' }}" required>
+                                <div class="form-text">The Discord channel ID where Steam links will be forwarded</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="command_prefix" class="form-label">Command Prefix</label>
+                                <input type="text" class="form-control" id="command_prefix" name="command_prefix" 
+                                       value="{{ config.COMMAND_PREFIX }}">
+                                <div class="form-text">The prefix for bot commands (e.g., !)</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="log_level" class="form-label">Log Level</label>
+                                <select class="form-select" id="log_level" name="log_level">
+                                    <option value="DEBUG" {% if config.LOG_LEVEL == 'DEBUG' %}selected{% endif %}>DEBUG</option>
+                                    <option value="INFO" {% if config.LOG_LEVEL == 'INFO' %}selected{% endif %}>INFO</option>
+                                    <option value="WARNING" {% if config.LOG_LEVEL == 'WARNING' %}selected{% endif %}>WARNING</option>
+                                    <option value="ERROR" {% if config.LOG_LEVEL == 'ERROR' %}selected{% endif %}>ERROR</option>
+                                    <option value="CRITICAL" {% if config.LOG_LEVEL == 'CRITICAL' %}selected{% endif %}>CRITICAL</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-success">Save Configuration</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="row mt-4">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Bot Instructions</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6>Setup:</h6>
+                        <ol>
+                            <li>Create a bot on the <a href="https://discord.com/developers/applications" target="_blank">Discord Developer Portal</a></li>
+                            <li>Enable the "Message Content Intent" under Bot settings</li>
+                            <li>Copy your bot token and paste it above</li>
+                            <li>Invite your bot to your Discord server</li>
+                            <li>Right-click a channel and select "Copy ID" (Developer Mode must be enabled)</li>
+                            <li>Paste the channel ID above as the Target Channel ID</li>
+                            <li>Save configuration and start the bot</li>
+                        </ol>
+
+                        <h6>How it works:</h6>
+                        <ul>
+                            <li>The bot watches all messages in your server for Steam game links</li>
+                            <li>When a valid link is found, it's reposted in your target channel with attribution</li>
+                            <li>Use <code>{{config.COMMAND_PREFIX}}stats</code> to see which games are most popular</li>
+                            <li>Use <code>{{config.COMMAND_PREFIX}}help_steam</code> for bot commands</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
